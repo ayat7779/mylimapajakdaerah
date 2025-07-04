@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Local Finance</string>
+    <string name="judul_item">Nama Jenis Pajak</string>
+    <string name="nol_rupiah">Rp 0</string>
+</resources>
