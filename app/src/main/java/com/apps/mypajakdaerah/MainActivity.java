@@ -1,6 +1,7 @@
 package com.apps.mypajakdaerah;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,7 +37,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RealisasiAdapter.OnItemClickListener {
     //--------------------------------------------------------
     private EditText etTanggalAwal, etTanggalAkhir;
     private Button btnMuatData;
@@ -64,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Inisialisasi komponen UI
         etTanggalAwal = findViewById(R.id.et_tanggal_awal);
         etTanggalAkhir = findViewById(R.id.et_tanggal_akhir);
         btnMuatData = findViewById(R.id.btn_muat_data);
@@ -72,25 +72,21 @@ public class MainActivity extends AppCompatActivity {
         tvErrorMessage = findViewById(R.id.tv_error_message);
         tvTotalPajak = findViewById(R.id.tv_total_pajak);
 
-        // Inisialisasi tombol-tombol pilihan cepat
         btnHariIni = findViewById(R.id.btn_hari_ini);
         btnBulanIni = findViewById(R.id.btn_bulan_ini);
         btnTahunIni = findViewById(R.id.btn_tahun_ini);
 
-        // Inisialisasi RecyclerView
         rvRealisasi = findViewById(R.id.rv_realisasi);
         realisasiList = new ArrayList<>();
-        realisasiAdapter = new RealisasiAdapter(realisasiList);
+        realisasiAdapter = new RealisasiAdapter(realisasiList, this);
         rvRealisasi.setLayoutManager(new LinearLayoutManager(this));
         rvRealisasi.setAdapter(realisasiAdapter);
 
-        // Inisialisasi Calendar dan SimpleDateFormat
         calendarAwal = Calendar.getInstance();
         calendarAkhir = Calendar.getInstance();
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
 
-        // Set listener untuk EditText Tanggal Awal
         etTanggalAwal.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -98,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Set listener untuk EditText Tanggal Akhir
         etTanggalAkhir.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Set listener untuk Button Muat Data
         btnMuatData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -114,42 +108,39 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Set listener untuk tombol Hari Ini
         btnHariIni.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Calendar today = Calendar.getInstance();
                 etTanggalAwal.setText(dateFormatter.format(today.getTime()));
                 etTanggalAkhir.setText(dateFormatter.format(today.getTime()));
-                loadApiData(); // Muat data setelah tanggal diatur
+                loadApiData();
             }
         });
 
-        // Set listener untuk tombol Bulan Ini
         btnBulanIni.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Calendar cal = Calendar.getInstance();
-                cal.set(Calendar.DAY_OF_MONTH, 1); // Atur ke tanggal 1 bulan ini
+                cal.set(Calendar.DAY_OF_MONTH, 1);
                 etTanggalAwal.setText(dateFormatter.format(cal.getTime()));
 
-                cal = Calendar.getInstance(); // Kembali ke tanggal saat ini untuk akhir bulan
+                cal = Calendar.getInstance();
                 etTanggalAkhir.setText(dateFormatter.format(cal.getTime()));
-                loadApiData(); // Muat data setelah tanggal diatur
+                loadApiData();
             }
         });
 
-        // Set listener untuk tombol Tahun Ini
         btnTahunIni.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Calendar cal = Calendar.getInstance();
-                cal.set(Calendar.DAY_OF_YEAR, 1); // Atur ke tanggal 1 Januari tahun ini
+                cal.set(Calendar.DAY_OF_YEAR, 1);
                 etTanggalAwal.setText(dateFormatter.format(cal.getTime()));
 
-                cal = Calendar.getInstance(); // Kembali ke tanggal saat ini untuk akhir tahun
+                cal = Calendar.getInstance();
                 etTanggalAkhir.setText(dateFormatter.format(cal.getTime()));
-                loadApiData(); // Muat data setelah tanggal diatur
+                loadApiData();
             }
         });
     }
@@ -219,30 +210,31 @@ public class MainActivity extends AppCompatActivity {
             double totalPajak = 0.0;
 
             double pkb = jsonObject.optDouble("realisasi_pkb", 0.0);
-            newList.add(new RealisasiItem("Realisasi PKB", pkb));
-            totalPajak += pkb;
+            newList.add(new RealisasiItem("Realisasi PKB", pkb, "PKB"));
+            totalPajak += pkb; // Tambahkan ke total
 
             double bbnkb = jsonObject.optDouble("realisasi_bbnkb", 0.0);
-            newList.add(new RealisasiItem("Realisasi BBNKB", bbnkb));
+            newList.add(new RealisasiItem("Realisasi BBNKB", bbnkb, "BBNKB"));
             totalPajak += bbnkb;
 
             double ap = jsonObject.optDouble("realisasi_ap", 0.0);
-            newList.add(new RealisasiItem("Realisasi Air Permukaan", ap));
+            newList.add(new RealisasiItem("Realisasi Air Permukaan", ap, "PAP"));
             totalPajak += ap;
 
             double pbbkb = jsonObject.optDouble("realisasi_pbbkb", 0.0);
-            newList.add(new RealisasiItem("Realisasi PBBKB", pbbkb));
+            newList.add(new RealisasiItem("Realisasi PBBKB", pbbkb, "PBBKB"));
             totalPajak += pbbkb;
 
             double pajakRokok = jsonObject.optDouble("realisasi_pajak_rokok", 0.0);
-            newList.add(new RealisasiItem("Realisasi Pajak Rokok", pajakRokok));
+            newList.add(new RealisasiItem("Realisasi Pajak Rokok", pajakRokok, "PR"));
             totalPajak += pajakRokok;
+
 
             realisasiAdapter.updateData(newList);
             tvTotalPajak.setText("Total Pajak: " + currencyFormatter.format(totalPajak));
 
             if (totalPajak == 0.0) {
-                tvErrorMessage.setText("Tidak ada data realisasi yang valid ditemukan untuk rentang tanggal ini. Cek Kembali Rentang tanggalnya");
+                tvErrorMessage.setText("Tidak ada data realisasi yang valid ditemukan untuk rentang tanggal ini.");
                 tvErrorMessage.setVisibility(View.VISIBLE);
             } else {
                 tvErrorMessage.setVisibility(View.GONE);
@@ -256,6 +248,32 @@ public class MainActivity extends AppCompatActivity {
             Log.e("JSON_PARSE_ERROR", "Error parsing JSON: " + e.getMessage(), e);
             realisasiAdapter.updateData(new ArrayList<>());
             tvTotalPajak.setText("Total Pajak: -");
+        }
+    }
+
+    @Override
+    public void onItemClick(RealisasiItem item) {
+        // Akronim yang didukung untuk detail
+        List<String> supportedAkronims = new ArrayList<>();
+        supportedAkronims.add("PKB");
+        supportedAkronims.add("BBNKB");
+        supportedAkronims.add("PAP");
+        supportedAkronims.add("PBBKB");
+        supportedAkronims.add("PR");
+        // Tambahkan akronim lain jika API detail Anda mendukungnya (misal PAB, OMBLB)
+        // supportedAkronims.add("PAB");
+        // supportedAkronims.add("OMBLB");
+
+
+        if (supportedAkronims.contains(item.getAkronimPajak())) {
+            Intent intent = new Intent(MainActivity.this, PajakDetailActivity.class);
+            intent.putExtra(PajakDetailActivity.EXTRA_AKRONIM_PAJAK, item.getAkronimPajak());
+            // ----- TAMBAHAN PENTING INI -----
+            intent.putExtra(PajakDetailActivity.EXTRA_REALISASI_DARI_LIST, item.getNilaiRealisasi());
+            // ----------------------------------
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "Detail untuk " + item.getNamaJenisPajak() + " belum tersedia.", Toast.LENGTH_SHORT).show();
         }
     }
 }
