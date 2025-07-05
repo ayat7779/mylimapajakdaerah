@@ -11,7 +11,6 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -19,50 +18,37 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements RealisasiAdapter.OnItemClickListener {
-    //--------------------------------------------------------
+
     private EditText etTanggalAwal, etTanggalAkhir;
-    private Button btnMuatData;
     private ProgressBar progressBar;
     private TextView tvErrorMessage;
     private TextView tvTotalPajak;
-
-    private Button btnHariIni, btnBulanIni, btnTahunIni;
-
-    private RecyclerView rvRealisasi;
     private RealisasiAdapter realisasiAdapter;
     private List<RealisasiItem> realisasiList;
-    private List<PajakDetail> allPajakDetails = new ArrayList<>();
-
+    private final List<PajakDetail> allPajakDetails = new ArrayList<>();
     private Calendar calendarAwal, calendarAkhir;
     private SimpleDateFormat dateFormatter;
     private SimpleDateFormat yearFormatter;
     private NumberFormat currencyFormatter;
-
     private static final String API_URL_RINGKASAN = "https://api2.bapenda.riau.go.id/json/api_realisasi.php";
-    // UBAH INI: Alamat API detail yang baru
     private static final String API_URL_DETAIL_BASE = "http://e-keuangan.riau.go.id/api/selectDetailPajakAll.php";
 
-    //-------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,118 +60,91 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
             return insets;
         });
 
+        // Inisialisasi komponen UI
         etTanggalAwal = findViewById(R.id.et_tanggal_awal);
         etTanggalAkhir = findViewById(R.id.et_tanggal_akhir);
-        btnMuatData = findViewById(R.id.btn_muat_data);
+        Button btnMuatData = findViewById(R.id.btn_muat_data);
         progressBar = findViewById(R.id.progress_bar);
         tvErrorMessage = findViewById(R.id.tv_error_message);
         tvTotalPajak = findViewById(R.id.tv_total_pajak);
 
-        btnHariIni = findViewById(R.id.btn_hari_ini);
-        btnBulanIni = findViewById(R.id.btn_bulan_ini);
-        btnTahunIni = findViewById(R.id.btn_tahun_ini);
+        // Tambahkan tombol untuk navigasi
+        Button btnHariIni = findViewById(R.id.btn_hari_ini);
+        Button btnBulanIni = findViewById(R.id.btn_bulan_ini);
+        Button btnTahunIni = findViewById(R.id.btn_tahun_ini);
 
-        rvRealisasi = findViewById(R.id.rv_realisasi);
+        // Inisialisasi RecyclerView
+        RecyclerView rvRealisasi = findViewById(R.id.rv_realisasi);
         realisasiList = new ArrayList<>();
         realisasiAdapter = new RealisasiAdapter(realisasiList, this);
         rvRealisasi.setLayoutManager(new LinearLayoutManager(this));
         rvRealisasi.setAdapter(realisasiAdapter);
 
+        // Inisialisasi tanggal
         calendarAwal = Calendar.getInstance();
         calendarAkhir = Calendar.getInstance();
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         yearFormatter = new SimpleDateFormat("yyyy", Locale.getDefault());
         currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
 
-        etTanggalAwal.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker(etTanggalAwal, calendarAwal);
-            }
+        // Set listener untuk EditText
+        etTanggalAwal.setOnClickListener(v -> showDatePicker(etTanggalAwal, calendarAwal));
+        etTanggalAkhir.setOnClickListener(v -> showDatePicker(etTanggalAkhir, calendarAkhir));
+        btnMuatData.setOnClickListener(v -> loadApiDataRingkasan());
+        btnHariIni.setOnClickListener(v -> {
+            Calendar today = Calendar.getInstance();
+            etTanggalAwal.setText(dateFormatter.format(today.getTime()));
+            etTanggalAkhir.setText(dateFormatter.format(today.getTime()));
+            loadApiDataRingkasan();
         });
 
-        etTanggalAkhir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker(etTanggalAkhir, calendarAkhir);
-            }
+        btnBulanIni.setOnClickListener(v -> {
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+            etTanggalAwal.setText(dateFormatter.format(cal.getTime()));
+
+            cal = Calendar.getInstance();
+            etTanggalAkhir.setText(dateFormatter.format(cal.getTime()));
+            loadApiDataRingkasan();
         });
 
-        btnMuatData.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadApiDataRingkasan();
-            }
+        btnTahunIni.setOnClickListener(v -> {
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.DAY_OF_YEAR, 1);
+            etTanggalAwal.setText(dateFormatter.format(cal.getTime()));
+
+            cal = Calendar.getInstance();
+            etTanggalAkhir.setText(dateFormatter.format(cal.getTime()));
+            loadApiDataRingkasan();
         });
 
-        btnHariIni.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Calendar today = Calendar.getInstance();
-                etTanggalAwal.setText(dateFormatter.format(today.getTime()));
-                etTanggalAkhir.setText(dateFormatter.format(today.getTime()));
-                loadApiDataRingkasan();
+        tvTotalPajak.setOnClickListener(v -> {
+            String tglAkhirStr = etTanggalAkhir.getText().toString();
+            if (TextUtils.isEmpty(tglAkhirStr)) {
+                Toast.makeText(MainActivity.this, "Silakan pilih tanggal akhir untuk menentukan tahun target.", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
 
-        btnBulanIni.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Calendar cal = Calendar.getInstance();
-                cal.set(Calendar.DAY_OF_MONTH, 1);
-                etTanggalAwal.setText(dateFormatter.format(cal.getTime()));
-
-                cal = Calendar.getInstance();
-                etTanggalAkhir.setText(dateFormatter.format(cal.getTime()));
-                loadApiDataRingkasan();
-            }
-        });
-
-        btnTahunIni.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Calendar cal = Calendar.getInstance();
-                cal.set(Calendar.DAY_OF_YEAR, 1);
-                etTanggalAwal.setText(dateFormatter.format(cal.getTime()));
-
-                cal = Calendar.getInstance();
-                etTanggalAkhir.setText(dateFormatter.format(cal.getTime()));
-                loadApiDataRingkasan();
-            }
-        });
-
-        tvTotalPajak.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String tglAkhirStr = etTanggalAkhir.getText().toString();
-                if (TextUtils.isEmpty(tglAkhirStr)) {
-                    Toast.makeText(MainActivity.this, "Silakan pilih tanggal akhir untuk menentukan tahun target.", Toast.LENGTH_SHORT).show();
-                    return;
+            try {
+                String selectedYear = yearFormatter.format(Objects.requireNonNull(dateFormatter.parse(tglAkhirStr)));
+                if (realisasiList != null && !realisasiList.isEmpty()) {
+                    loadAllPajakDetailsForTotalView(selectedYear);
+                } else {
+                    Toast.makeText(MainActivity.this, "Silakan muat data realisasi terlebih dahulu.", Toast.LENGTH_SHORT).show();
                 }
-
-                try {
-                    String selectedYear = yearFormatter.format(dateFormatter.parse(tglAkhirStr));
-                    if (realisasiList != null && !realisasiList.isEmpty()) {
-                        loadAllPajakDetailsForTotalView(selectedYear);
-                    } else {
-                        Toast.makeText(MainActivity.this, "Silakan muat data realisasi terlebih dahulu.", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (java.text.ParseException e) {
-                    Toast.makeText(MainActivity.this, "Format tanggal akhir tidak valid.", Toast.LENGTH_SHORT).show();
-                    Log.e("MainActivity", "Error parsing date: " + e.getMessage());
-                }
+            } catch (java.text.ParseException e) {
+                Toast.makeText(MainActivity.this, "Format tanggal akhir tidak valid.", Toast.LENGTH_SHORT).show();
+                Log.e("MainActivity", "Error parsing date: " + e.getMessage());
             }
         });
     }
 
+    // Fungsi untuk menampilkan DatePickerDialog
     private void showDatePicker(final EditText editText, final Calendar calendar) {
         new DatePickerDialog(MainActivity.this,
-                new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(android.widget.DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                        calendar.set(year, monthOfYear, dayOfMonth);
-                        editText.setText(dateFormatter.format(calendar.getTime()));
-                    }
+                (view, year, monthOfYear, dayOfMonth) -> {
+                    calendar.set(year, monthOfYear, dayOfMonth);
+                    editText.setText(dateFormatter.format(calendar.getTime()));
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
@@ -193,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
                 .show();
     }
 
+    // Fungsi untuk memuat data ringkasan dari API
     private void loadApiDataRingkasan() {
         String tglAwal = etTanggalAwal.getText().toString();
         String tglAkhir = etTanggalAkhir.getText().toString();
@@ -213,29 +173,24 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
 
         RequestQueue queue = Volley.newRequestQueue(this);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, apiUrl,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        progressBar.setVisibility(View.GONE);
-                        Log.d("API_RESPONSE_RINGKASAN", response);
-                        parseAndDisplayRingkasanData(response);
-                    }
+                response -> {
+                    progressBar.setVisibility(View.GONE);
+                    Log.d("API_RESPONSE_RINGKASAN", response);
+                    parseAndDisplayRingkasanData(response);
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        progressBar.setVisibility(View.GONE);
-                        String errorMessage = "Gagal memuat data ringkasan: " + (error.getMessage() != null ? error.getMessage() : "Kesalahan tidak diketahui");
-                        tvErrorMessage.setText(errorMessage);
-                        tvErrorMessage.setVisibility(View.VISIBLE);
-                        Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                        Log.e("API_ERROR_RINGKASAN", "Error: " + errorMessage, error);
-                    }
+                error -> {
+                    progressBar.setVisibility(View.GONE);
+                    String errorMessage = "Gagal memuat data ringkasan: " + (error.getMessage() != null ? error.getMessage() : "Kesalahan tidak diketahui");
+                    tvErrorMessage.setText(errorMessage);
+                    tvErrorMessage.setVisibility(View.VISIBLE);
+                    Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    Log.e("API_ERROR_RINGKASAN", "Error: " + errorMessage, error);
                 });
 
         queue.add(stringRequest);
     }
 
+    // Fungsi untuk memparsing dan menampilkan data ringkasan
     private void parseAndDisplayRingkasanData(String jsonResponse) {
         try {
             JSONObject jsonObject = new JSONObject(jsonResponse);
@@ -292,66 +247,57 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
         }
     }
 
+    // Fungsi untuk memuat detail pajak keseluruhan untuk total view
     private void loadAllPajakDetailsForTotalView(String year) {
         progressBar.setVisibility(View.VISIBLE);
         tvErrorMessage.setVisibility(View.GONE);
         allPajakDetails.clear();
 
-        // UBAH INI: Sesuaikan format URL dengan parameter 'key'
         String apiUrl = API_URL_DETAIL_BASE + "?key=" + year;
         Log.d("API_URL_TOTAL_DETAIL", "URL Total Detail: " + apiUrl);
 
         RequestQueue queue = Volley.newRequestQueue(this);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, apiUrl,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        progressBar.setVisibility(View.GONE);
-                        Log.d("API_RESPONSE_TOTAL_DETAIL", response);
-                        parseAndStartTotalDetailActivity(response, year);
-                    }
+                response -> {
+                    progressBar.setVisibility(View.GONE);
+                    Log.d("API_RESPONSE_TOTAL_DETAIL", response);
+                    parseAndStartTotalDetailActivity(response, year);
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        progressBar.setVisibility(View.GONE);
-                        String errorMessage = "Gagal memuat detail pajak keseluruhan: " + (error.getMessage() != null ? error.getMessage() : "Kesalahan tidak diketahui");
-                        tvErrorMessage.setText(errorMessage);
-                        tvErrorMessage.setVisibility(View.VISIBLE);
-                        Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                        Log.e("API_ERROR_TOTAL_DETAIL", "Error: " + errorMessage, error);
-                    }
+                error -> {
+                    progressBar.setVisibility(View.GONE);
+                    String errorMessage = "Gagal memuat detail pajak keseluruhan: " + (error.getMessage() != null ? error.getMessage() : "Kesalahan tidak diketahui");
+                    tvErrorMessage.setText(errorMessage);
+                    tvErrorMessage.setVisibility(View.VISIBLE);
+                    Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    Log.e("API_ERROR_TOTAL_DETAIL", "Error: " + errorMessage, error);
                 });
 
         queue.add(stringRequest);
     }
 
+    // Fungsi untuk memparsing dan memulai TotalDetailActivity
     private void parseAndStartTotalDetailActivity(String jsonResponse, String selectedYear) {
         try {
             JSONObject jsonObject = new JSONObject(jsonResponse);
-            // Cek status, asumsikan status 1 = berhasil
+
             int status = jsonObject.optInt("status", 0);
 
             if (status == 1) {
-                // Asumsi data record ada di bawah key "data" jika statusnya 1
-                JSONArray recordsArray = jsonObject.getJSONArray("records"); // Mungkin "records" atau "data"
+                JSONArray recordsArray = jsonObject.getJSONArray("records");
                 for (int i = 0; i < recordsArray.length(); i++) {
                     JSONObject record = recordsArray.getJSONObject(i);
-                    // Pastikan semua kolom ada dan jenis data sesuai
-                    // PERHATIKAN: Nama key JSON mungkin berbeda dari sebelumnya (e.g., 'Tahun' instead of 'tahun')
-                    // Sesuaikan ini jika nama key di API baru berbeda
                     PajakDetail detail = new PajakDetail(
                             record.optString("id"),
-                            record.optString("tahun"),      // Asumsi key "Tahun"
-                            record.optString("kode_pajak"), // Asumsi key "KodePajak"
-                            record.optString("nama_pajak"), // Asumsi key "NamaPajak"
-                            record.optString("akronim"),   // Asumsi key "Akronim"
-                            record.optDouble("target"),    // Asumsi key "Target"
-                            record.optDouble("realisasi"), // Asumsi key "realisasi" (ini tetap nol dari API detail)
-                            record.optDouble("tw1"),       // Asumsi key "Tw1"
-                            record.optDouble("tw2"),       // Asumsi key "Tw2"
-                            record.optDouble("tw3"),       // Asumsi key "Tw3"
-                            record.optDouble("tw4")        // Asumsi key "Tw4"
+                            record.optString("tahun"),
+                            record.optString("kode_pajak"),
+                            record.optString("nama_pajak"),
+                            record.optString("akronim"),
+                            record.optDouble("target"),
+                            record.optDouble("realisasi"),
+                            record.optDouble("tw1"),
+                            record.optDouble("tw2"),
+                            record.optDouble("tw3"),
+                            record.optDouble("tw4")
                     );
                     // Filter berdasarkan tahun yang diminta (jika API tidak 100% memfilter)
                     if (detail.getTahun().equals(selectedYear)) {
@@ -384,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
         }
     }
 
-
+    // Fungsi untuk menangani klik item pada RecyclerView
     @Override
     public void onItemClick(RealisasiItem item) {
         String tglAkhirStr = etTanggalAkhir.getText().toString();
@@ -395,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
 
         String selectedYearForDetail = null;
         try {
-            selectedYearForDetail = yearFormatter.format(dateFormatter.parse(tglAkhirStr));
+            selectedYearForDetail = yearFormatter.format(Objects.requireNonNull(dateFormatter.parse(tglAkhirStr)));
         } catch (java.text.ParseException e) {
             Toast.makeText(MainActivity.this, "Format tanggal akhir tidak valid.", Toast.LENGTH_SHORT).show();
             Log.e("MainActivity", "Error parsing date for detail view: " + e.getMessage());
@@ -410,7 +356,6 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
         supportedAkronims.add("PR");
         supportedAkronims.add("PAB");
         supportedAkronims.add("OMBLB");
-
 
         if (supportedAkronims.contains(item.getAkronimPajak())) {
             Intent intent = new Intent(MainActivity.this, PajakDetailActivity.class);

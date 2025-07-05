@@ -1,16 +1,13 @@
 package com.apps.mypajakdaerah;
 
 import android.os.Bundle;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +16,13 @@ import java.util.Locale;
 
 public class TotalPajakDetailActivity extends AppCompatActivity {
 
+    // Tambahkan konstanta untuk kunci Intent
     public static final String EXTRA_ALL_PAJAK_DETAILS = "extra_all_pajak_details";
     public static final String EXTRA_TOTAL_REALISASI_MAIN = "extra_total_realisasi_main";
-    public static final String EXTRA_SELECTED_YEAR = "extra_selected_year"; // <--- ADD THIS LINE
+    public static final String EXTRA_SELECTED_YEAR = "extra_selected_year";
 
+    // Tambahkan variabel untuk TextView
     private TextView tvTotalTarget, tvTotalRealisasi, tvTotalPersentase;
-    private TextView tvTotalPajakTitleYear;
     private NumberFormat currencyFormatter;
 
     @Override
@@ -38,13 +36,15 @@ public class TotalPajakDetailActivity extends AppCompatActivity {
             return insets;
         });
 
-        tvTotalPajakTitleYear = findViewById(R.id.tv_total_pajak_title_year);
+        // Inisialisasi TextView
+        TextView tvTotalPajakTitleYear = findViewById(R.id.tv_total_pajak_title_year);
         tvTotalTarget = findViewById(R.id.tv_total_target);
         tvTotalRealisasi = findViewById(R.id.tv_total_realisasi);
         tvTotalPersentase = findViewById(R.id.tv_total_persentase);
 
         currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
 
+        // Ambil data dari Intent
         if (getIntent().hasExtra(EXTRA_ALL_PAJAK_DETAILS) &&
                 getIntent().hasExtra(EXTRA_TOTAL_REALISASI_MAIN) &&
                 getIntent().hasExtra(EXTRA_SELECTED_YEAR)) {
@@ -53,7 +53,7 @@ public class TotalPajakDetailActivity extends AppCompatActivity {
             double totalRealisasiMain = getIntent().getDoubleExtra(EXTRA_TOTAL_REALISASI_MAIN, 0.0);
             String selectedYear = getIntent().getStringExtra(EXTRA_SELECTED_YEAR);
 
-            tvTotalPajakTitleYear.setText("Ringkasan Total Pajak Daerah Tahun " + selectedYear);
+            tvTotalPajakTitleYear.setText("Ringkasan Total Pajak Daerah\nTahun " + selectedYear);
 
             calculateAndDisplayTotals(allPajakDetails, totalRealisasiMain);
         } else {
@@ -65,6 +65,7 @@ public class TotalPajakDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Fungsi untuk menghitung dan menampilkan total
     private void calculateAndDisplayTotals(List<PajakDetail> details, double totalRealisasiMain) {
         double calculatedTotalTarget = 0.0;
 
@@ -79,9 +80,9 @@ public class TotalPajakDetailActivity extends AppCompatActivity {
             totalPersentase = (totalRealisasiMain / calculatedTotalTarget) * 100;
         }
 
-        tvTotalTarget.setText("Total Target: " + currencyFormatter.format(calculatedTotalTarget));
-        tvTotalRealisasi.setText("Total Realisasi: " + currencyFormatter.format(totalRealisasiMain));
-        tvTotalPersentase.setText("Persentase: " + String.format(Locale.getDefault(), "%.2f%%", totalPersentase));
+        tvTotalTarget.setText(currencyFormatter.format(calculatedTotalTarget));
+        tvTotalRealisasi.setText(currencyFormatter.format(totalRealisasiMain));
+        tvTotalPersentase.setText(String.format(Locale.getDefault(), "%.2f%%", totalPersentase));
 
         if (totalPersentase >= 100) {
             tvTotalPersentase.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
