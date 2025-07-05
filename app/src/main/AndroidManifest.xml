@@ -22,6 +22,9 @@
         android:theme="@style/Theme.MyFinance"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".TotalPajakDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".PajakDetailActivity"
             android:exported="false" />
         <activity
