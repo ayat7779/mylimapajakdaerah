@@ -1,5 +1,6 @@
 package com.apps.mypajakdaerah;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -26,26 +27,33 @@ import org.json.JSONObject;
 
 import java.text.NumberFormat;
 import java.util.Locale;
+import android.graphics.Color;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class PajakDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_AKRONIM_PAJAK = "extra_akronim_pajak";
     public static final String EXTRA_REALISASI_DARI_LIST = "extra_realisasi_dari_list";
     public static final String EXTRA_SELECTED_YEAR = "extra_selected_year";
+    public static final String EXTRA_SELECTED_END_DATE = "extra_selected_end_date";
 
     private TextView tvDetailNamaPajak, tvDetailTahun, tvDetailTarget, tvDetailRealisasi;
     private TextView tvDetailPersentase;
     private TextView tvTw1, tvTw2, tvTw3, tvTw4;
     private TextView tvDetailErrorMessage;
     private ProgressBar progressBar;
+    private TextView tvTargetNarasi;
 
     private NumberFormat currencyFormatter;
     private String selectedAkronim = "";
     private double realisasiDariMainList = 0.0;
     private double targetDariDetailApi = 0.0;
     private String selectedYear = "";
+    private String selectedEndDateStr = "";
 
-    // UBAH INI: Alamat API detail yang baru
+    private SimpleDateFormat dateFormatter;
     private static final String API_URL_DETAIL_BASE = "http://e-keuangan.riau.go.id/api/selectDetailPajakAll.php";
 
 
@@ -71,23 +79,29 @@ public class PajakDetailActivity extends AppCompatActivity {
         tvTw4 = findViewById(R.id.tv_tw4);
         tvDetailErrorMessage = findViewById(R.id.tv_detail_error_message);
         progressBar = findViewById(R.id.detail_progress_bar);
+        tvTargetNarasi = findViewById(R.id.tv_target_narasi);
 
         currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+        dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-        if (getIntent().hasExtra(EXTRA_AKRONIM_PAJAK) && getIntent().hasExtra(EXTRA_SELECTED_YEAR)) {
+        if (getIntent().hasExtra(EXTRA_AKRONIM_PAJAK) &&
+                getIntent().hasExtra(EXTRA_SELECTED_YEAR)&&
+                getIntent().hasExtra(EXTRA_SELECTED_END_DATE)) {
             selectedAkronim = getIntent().getStringExtra(EXTRA_AKRONIM_PAJAK);
             realisasiDariMainList = getIntent().getDoubleExtra(EXTRA_REALISASI_DARI_LIST, 0.0);
             selectedYear = getIntent().getStringExtra(EXTRA_SELECTED_YEAR);
+            selectedEndDateStr = getIntent().getStringExtra(EXTRA_SELECTED_END_DATE);
 
             setTitle("Detail " + selectedAkronim + " (" + selectedYear + ")");
             loadPajakDetailData();
         } else {
-            Toast.makeText(this, "Akronim atau tahun pajak tidak ditemukan.", Toast.LENGTH_SHORT).show();
-            tvDetailErrorMessage.setText("Akronim atau tahun pajak tidak ditemukan.");
+            Toast.makeText(this, "Akronim, tahun, atau tanggal akhir tidak ditemukan.", Toast.LENGTH_SHORT).show();
+            tvDetailErrorMessage.setText("Akronim, tahun, atau tanggal akhir tidak ditemukan.");
             tvDetailErrorMessage.setVisibility(View.VISIBLE);
         }
     }
 
+    // Fungsi untuk memuat data detail pajak dari API
     private void loadPajakDetailData() {
         progressBar.setVisibility(View.VISIBLE);
         tvDetailErrorMessage.setVisibility(View.GONE);
@@ -97,7 +111,7 @@ public class PajakDetailActivity extends AppCompatActivity {
         tvDetailPersentase.setText("Persentase: -");
         tvDetailTahun.setText("Tahun: " + selectedYear);
 
-        // UBAH INI: Sesuaikan format URL dengan parameter 'key'
+        // Sesuaikan format URL dengan parameter 'key'
         String apiUrl = API_URL_DETAIL_BASE + "?key=" + selectedYear;
         Log.d("API_URL_DETAIL_SINGLE", "URL Detail Single: " + apiUrl);
 
@@ -125,6 +139,7 @@ public class PajakDetailActivity extends AppCompatActivity {
         queue.add(stringRequest);
     }
 
+    // Fungsi untuk memparsing dan menampilkan data detail pajak
     private void parseAndDisplayDetailData(String jsonResponse) {
         try {
             JSONObject jsonObject = new JSONObject(jsonResponse);
@@ -134,14 +149,21 @@ public class PajakDetailActivity extends AppCompatActivity {
             if (status == 1) {
                 // Asumsi data record ada di bawah key "data" jika statusnya 1
                 JSONArray recordsArray = jsonObject.getJSONArray("records"); // Mungkin "records" atau "data"
+                if (recordsArray == null) {
+                    recordsArray = jsonObject.optJSONArray("records"); // Jika tidak ada, coba "records"
+                }
+
+                if (recordsArray == null) {
+                    throw new JSONException("No 'data' or 'records' array found in JSON response.");
+                }
+
                 PajakDetail foundDetail = null;
 
                 for (int i = 0; i < recordsArray.length(); i++) {
                     JSONObject record = recordsArray.getJSONObject(i);
-                    // PERHATIKAN: Nama key JSON mungkin berbeda dari sebelumnya (e.g., 'Tahun' instead of 'tahun')
-                    // Sesuaikan ini jika nama key di API baru berbeda
-                    String akronim = record.optString("akronim");  // Asumsi key "Akronim"
-                    String tahunData = record.optString("tahun"); // Asumsi key "Tahun"
+
+                    String akronim = record.optString("akronim");
+                    String tahunData = record.optString("tahun");
 
                     // Filter berdasarkan akronim DAN tahun yang dipilih
                     if (akronim.equalsIgnoreCase(selectedAkronim) && tahunData.equals(selectedYear)) {
@@ -168,16 +190,18 @@ public class PajakDetailActivity extends AppCompatActivity {
 
                     targetDariDetailApi = foundDetail.getTarget();
                     tvDetailTarget.setText("Target: " + currencyFormatter.format(targetDariDetailApi));
-
                     tvDetailRealisasi.setText("Realisasi: " + currencyFormatter.format(realisasiDariMainList));
 
+                    double persentaseRealisasi = 0.0;
                     if (targetDariDetailApi > 0) {
-                        double persentase = (realisasiDariMainList / targetDariDetailApi) * 100;
-                        tvDetailPersentase.setText("Persentase: " + String.format(Locale.getDefault(), "%.2f%%", persentase));
-                        tvDetailPersentase.setTextColor(getResources().getColor(android.R.color.black));
+                        persentaseRealisasi = (realisasiDariMainList / targetDariDetailApi) * 100;
+                        tvDetailPersentase.setText("Persentase: " + String.format(Locale.getDefault(), "%.2f%%", persentaseRealisasi));
+                        tvDetailPersentase.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                        tvDetailPersentase.setTypeface(null, Typeface.BOLD_ITALIC);
                     } else {
                         tvDetailPersentase.setText("Persentase: 0.00%");
                         tvDetailPersentase.setTextColor(getResources().getColor(android.R.color.darker_gray));
+                        tvDetailPersentase.setTypeface(null, android.graphics.Typeface.BOLD);
                     }
 
                     tvTw1.setText("TW1: " + String.format(Locale.getDefault(), "%.2f%%", foundDetail.getTw1() * 100));
@@ -185,19 +209,81 @@ public class PajakDetailActivity extends AppCompatActivity {
                     tvTw3.setText("TW3: " + String.format(Locale.getDefault(), "%.2f%%", foundDetail.getTw3() * 100));
                     tvTw4.setText("TW4: " + String.format(Locale.getDefault(), "%.2f%%", foundDetail.getTw4() * 100));
 
+                    // --- LOGIKA PENANDA TW & NARASI TARGET ---
+                    try {
+                        Date endDate = dateFormatter.parse(selectedEndDateStr);
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(endDate);
+                        int month = cal.get(Calendar.MONTH) + 1; // Bulan dimulai dari 0 (Januari)
+
+                        tvTw1.setTextColor(Color.BLACK);
+                        tvTw2.setTextColor(Color.BLACK);
+                        tvTw3.setTextColor(Color.BLACK);
+                        tvTw4.setTextColor(Color.BLACK);
+                        tvTw1.setTypeface(null, android.graphics.Typeface.NORMAL);
+                        tvTw2.setTypeface(null, android.graphics.Typeface.NORMAL);
+                        tvTw3.setTypeface(null, android.graphics.Typeface.NORMAL);
+                        tvTw4.setTypeface(null, android.graphics.Typeface.NORMAL);
+                        tvTargetNarasi.setVisibility(View.GONE); // Sembunyikan narasi secara default
+
+                        double targetPersentaseTriwulan = 0.0;
+                        String triwulanNama = "";
+
+                        if (month >= 1 && month <= 3) {
+                            tvTw1.setTextColor(getResources().getColor(android.R.color.holo_red_light));
+                            tvTw1.setTypeface(null, android.graphics.Typeface.BOLD);
+                            targetPersentaseTriwulan = foundDetail.getTw1() * 100;
+                            triwulanNama = "TW-1";
+                        } else if (month >= 4 && month <= 6) {
+                            tvTw2.setTextColor(getResources().getColor(android.R.color.holo_red_light));
+                            tvTw2.setTypeface(null, android.graphics.Typeface.BOLD);
+                            targetPersentaseTriwulan = foundDetail.getTw2() * 100;
+                            triwulanNama = "TW-2";
+                        } else if (month >= 7 && month <= 9) {
+                            tvTw3.setTextColor(getResources().getColor(android.R.color.holo_red_light));
+                            tvTw3.setTypeface(null, android.graphics.Typeface.BOLD);
+                            targetPersentaseTriwulan = foundDetail.getTw3() * 100;
+                            triwulanNama = "TW-3";
+                        } else if (month >= 10 && month <= 12) {
+                            tvTw4.setTextColor(getResources().getColor(android.R.color.holo_red_light));
+                            tvTw4.setTypeface(null, android.graphics.Typeface.BOLD);
+                            targetPersentaseTriwulan = foundDetail.getTw4() * 100;
+                            triwulanNama = "TW-4";
+                        }
+
+                        // Logika Narasi Target
+                        if (targetDariDetailApi > 0 && targetPersentaseTriwulan > 0) {
+                            if (persentaseRealisasi < targetPersentaseTriwulan) {
+                                double selisih = targetPersentaseTriwulan - persentaseRealisasi;
+                                String narasi = "Belum mencapai target " + triwulanNama + "\ndengan selisih " +
+                                        String.format(Locale.getDefault(), "%.2f%%", selisih);
+                                tvTargetNarasi.setText(narasi);
+                                tvTargetNarasi.setVisibility(View.VISIBLE);
+                            }
+                        }
+
+                    } catch (java.text.ParseException e) {
+                        Log.e("PajakDetailActivity", "Error parsing selectedEndDateStr: " + e.getMessage());
+                    }
+                    // --- AKHIR LOGIKA PENANDA TW & NARASI TARGET ---
+
                     tvDetailErrorMessage.setVisibility(View.GONE);
                 } else {
                     tvDetailErrorMessage.setText("Detail pajak untuk '" + selectedAkronim + "' tahun '" + selectedYear + "' tidak ditemukan.");
                     tvDetailErrorMessage.setVisibility(View.VISIBLE);
                     tvDetailPersentase.setText("Persentase: -");
                     tvDetailTarget.setText("Target: -");
+                    tvTargetNarasi.setVisibility(View.GONE); // Sembunyikan narasi
+                    resetTwTextViews(); // Pastikan TW juga direset
                 }
 
             } else {
-                tvDetailErrorMessage.setText("Status API tidak berhasil.");
+                tvDetailErrorMessage.setText("Status API tidak berhasil atau data kosong.");
                 tvDetailErrorMessage.setVisibility(View.VISIBLE);
                 tvDetailPersentase.setText("Persentase: -");
                 tvDetailTarget.setText("Target: -");
+                tvTargetNarasi.setVisibility(View.GONE); // Sembunyikan narasi
+                resetTwTextViews(); // Pastikan TW juga direset
             }
 
         } catch (JSONException e) {
@@ -208,17 +294,35 @@ public class PajakDetailActivity extends AppCompatActivity {
             Log.e("JSON_PARSE_ERROR_DETAIL_SINGLE", "Error parsing JSON: " + e.getMessage(), e);
             tvDetailPersentase.setText("Persentase: -");
             tvDetailTarget.setText("Target: -");
+            tvTargetNarasi.setVisibility(View.GONE); // Sembunyikan narasi
+            resetTwTextViews(); // Pastikan TW juga direset
         }
     }
 
+    // Fungsi untuk mereset tampilan detail jika data tidak ditemukan
     private void resetDetailTextViews() {
         tvDetailNamaPajak.setText("Nama Pajak: -");
         tvDetailTahun.setText("Tahun: -");
         tvDetailTarget.setText("Target: -");
         tvDetailPersentase.setText("Persentase: -");
+        tvTargetNarasi.setVisibility(View.GONE); // Sembunyikan narasi
+        resetTwTextViews(); // Panggil fungsi reset TW
+    }
+
+    // Fungsi untuk mereset tampilan TW jika data tidak ditemukan
+    private void resetTwTextViews() {
         tvTw1.setText("TW1: -");
         tvTw2.setText("TW2: -");
         tvTw3.setText("TW3: -");
         tvTw4.setText("TW4: -");
+        // Reset warna dan gaya teks TW ke default
+        tvTw1.setTextColor(Color.BLACK);
+        tvTw2.setTextColor(Color.BLACK);
+        tvTw3.setTextColor(Color.BLACK);
+        tvTw4.setTextColor(Color.BLACK);
+        tvTw1.setTypeface(null, android.graphics.Typeface.NORMAL);
+        tvTw2.setTypeface(null, android.graphics.Typeface.NORMAL);
+        tvTw3.setTypeface(null, android.graphics.Typeface.NORMAL);
+        tvTw4.setTypeface(null, android.graphics.Typeface.NORMAL);
     }
 }

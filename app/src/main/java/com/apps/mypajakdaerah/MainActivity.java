@@ -362,6 +362,7 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
             intent.putExtra(PajakDetailActivity.EXTRA_AKRONIM_PAJAK, item.getAkronimPajak());
             intent.putExtra(PajakDetailActivity.EXTRA_REALISASI_DARI_LIST, item.getNilaiRealisasi());
             intent.putExtra(PajakDetailActivity.EXTRA_SELECTED_YEAR, selectedYearForDetail);
+            intent.putExtra(PajakDetailActivity.EXTRA_SELECTED_END_DATE, tglAkhirStr);
             startActivity(intent);
         } else {
             Toast.makeText(this, "Detail untuk " + item.getNamaJenisPajak() + " belum tersedia.", Toast.LENGTH_SHORT).show();

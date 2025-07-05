@@ -6,40 +6,45 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bright_background" android:padding="20dp"
+    android:background="@color/bright_background"
+    android:padding="20dp"
     tools:context=".PajakDetailActivity">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_header_info"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="20dp" app:cardElevation="10dp" app:contentPadding="24dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="10dp"
+        app:contentPadding="24dp"
         android:layout_marginTop="28dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:cardBackgroundColor="@color/bright_surface"> <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/tv_detail_nama_pajak"
+        app:cardBackgroundColor="@color/bright_surface">
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nama Pajak: Pajak Bumi dan Bangunan"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/energetic_primary" android:layout_marginBottom="6dp"/>
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_detail_tahun"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Tahun: 2025"
-            android:textSize="18sp"
-            android:textColor="@color/bright_on_surface_variant"/>
-    </LinearLayout>
+            <TextView
+                android:id="@+id/tv_detail_nama_pajak"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nama Pajak: - "
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/energetic_primary"
+                android:layout_marginBottom="6dp"/>
+
+            <TextView
+                android:id="@+id/tv_detail_tahun"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tahun: "
+                android:textSize="18sp"
+                android:textColor="@color/bright_on_surface_variant"/>
+        </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
@@ -73,7 +78,7 @@
                 android:id="@+id/tv_detail_target"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Target: Rp1.000.000.000,00"
+                android:text="Target: Rp0,00"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/energetic_primary"
@@ -83,7 +88,7 @@
                 android:id="@+id/tv_detail_realisasi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Realisasi: Rp750.000.000,00"
+                android:text="Realisasi: Rp0,00"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/energetic_tertiary"
@@ -93,7 +98,7 @@
                 android:id="@+id/tv_detail_persentase"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Persentase: 75.00%"
+                android:text="Persentase: 0,00%"
                 android:textSize="18sp"
                 android:textStyle="italic"
                 android:textColor="@color/energetic_secondary"
@@ -130,14 +135,15 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="2dp" android:background="@color/bright_divider"
+                android:layout_height="2dp"
+                android:background="@color/bright_divider"
                 android:layout_marginBottom="10dp"/>
 
             <TextView
                 android:id="@+id/tv_tw1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TW1: Rp250.000.000,00"
+                android:text="TW1: 0.00%"
                 android:textSize="18sp"
                 android:textColor="@color/bright_on_surface_variant"
                 android:layout_marginBottom="6dp"/>
@@ -146,7 +152,7 @@
                 android:id="@+id/tv_tw2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TW2: Rp250.000.000,00"
+                android:text="TW1: 0.00%"
                 android:textSize="18sp"
                 android:textColor="@color/bright_on_surface_variant"
                 android:layout_marginBottom="6dp"/>
@@ -155,7 +161,7 @@
                 android:id="@+id/tv_tw3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TW3: Rp250.000.000,00"
+                android:text="TW1: 0.00%"
                 android:textSize="18sp"
                 android:textColor="@color/bright_on_surface_variant"
                 android:layout_marginBottom="6dp"/>
@@ -164,11 +170,29 @@
                 android:id="@+id/tv_tw4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TW4: Rp250.000.000,00"
+                android:text="TW1: 0.00%"
                 android:textSize="18sp"
                 android:textColor="@color/bright_on_surface_variant"
                 android:layout_marginBottom="6dp"/>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/bright_divider"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView
+                android:id="@+id/tv_target_narasi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/holo_red_dark"
+                android:gravity="center_horizontal"
+                android:padding="8dp"
+                android:background="@android:color/white"
+                android:visibility="gone" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
