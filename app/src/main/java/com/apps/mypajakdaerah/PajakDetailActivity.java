@@ -7,24 +7,20 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.text.NumberFormat;
 import java.util.Locale;
 import android.graphics.Color;
@@ -33,12 +29,13 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class PajakDetailActivity extends AppCompatActivity {
-
+    // Deklarasi konstanta untuk intent
     public static final String EXTRA_AKRONIM_PAJAK = "extra_akronim_pajak";
     public static final String EXTRA_REALISASI_DARI_LIST = "extra_realisasi_dari_list";
     public static final String EXTRA_SELECTED_YEAR = "extra_selected_year";
     public static final String EXTRA_SELECTED_END_DATE = "extra_selected_end_date";
 
+    // Deklarasi komponen UI
     private TextView tvDetailNamaPajak, tvDetailTahun, tvDetailTarget, tvDetailRealisasi;
     private TextView tvDetailPersentase;
     private TextView tvTw1, tvTw2, tvTw3, tvTw4;
@@ -46,14 +43,16 @@ public class PajakDetailActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView tvTargetNarasi;
 
+    // Deklarasi objek untuk format mata uang dan tanggal
     private NumberFormat currencyFormatter;
     private String selectedAkronim = "";
     private double realisasiDariMainList = 0.0;
     private double targetDariDetailApi = 0.0;
     private String selectedYear = "";
     private String selectedEndDateStr = "";
-
     private SimpleDateFormat dateFormatter;
+
+    // Deklarasi URL API
     private static final String API_URL_DETAIL_BASE = "http://e-keuangan.riau.go.id/api/selectDetailPajakAll.php";
 
 
@@ -68,6 +67,7 @@ public class PajakDetailActivity extends AppCompatActivity {
             return insets;
         });
 
+        // Inisialisasi komponen UI
         tvDetailNamaPajak = findViewById(R.id.tv_detail_nama_pajak);
         tvDetailTahun = findViewById(R.id.tv_detail_tahun);
         tvDetailTarget = findViewById(R.id.tv_detail_target);
@@ -266,7 +266,6 @@ public class PajakDetailActivity extends AppCompatActivity {
                         Log.e("PajakDetailActivity", "Error parsing selectedEndDateStr: " + e.getMessage());
                     }
                     // --- AKHIR LOGIKA PENANDA TW & NARASI TARGET ---
-
                     tvDetailErrorMessage.setVisibility(View.GONE);
                 } else {
                     tvDetailErrorMessage.setText("Detail pajak untuk '" + selectedAkronim + "' tahun '" + selectedYear + "' tidak ditemukan.");

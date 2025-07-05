@@ -35,7 +35,8 @@
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="@color/energetic_primary"
-                android:layout_marginBottom="6dp"/>
+                android:layout_marginBottom="6dp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/tv_detail_tahun"
@@ -43,7 +44,8 @@
                 android:layout_height="wrap_content"
                 android:text="Tahun: "
                 android:textSize="18sp"
-                android:textColor="@color/bright_on_surface_variant"/>
+                android:textColor="@color/bright_on_surface_variant"
+                tools:ignore="HardcodedText" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -72,7 +74,8 @@
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/bright_on_surface"
-                android:layout_marginBottom="14dp"/>
+                android:layout_marginBottom="14dp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/tv_detail_target"
@@ -82,7 +85,8 @@
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/energetic_primary"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="10dp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/tv_detail_realisasi"
@@ -92,7 +96,8 @@
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/energetic_tertiary"
-                android:layout_marginBottom="6dp"/>
+                android:layout_marginBottom="6dp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/tv_detail_persentase"
@@ -102,7 +107,8 @@
                 android:textSize="18sp"
                 android:textStyle="italic"
                 android:textColor="@color/energetic_secondary"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="10dp"
+                tools:ignore="HardcodedText" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -131,7 +137,8 @@
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/bright_on_surface"
-                android:layout_marginBottom="14dp"/>
+                android:layout_marginBottom="14dp"
+                tools:ignore="HardcodedText" />
 
             <View
                 android:layout_width="match_parent"
@@ -146,34 +153,38 @@
                 android:text="TW1: 0.00%"
                 android:textSize="18sp"
                 android:textColor="@color/bright_on_surface_variant"
-                android:layout_marginBottom="6dp"/>
+                android:layout_marginBottom="6dp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/tv_tw2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TW1: 0.00%"
+                android:text="TW2: 0.00%"
                 android:textSize="18sp"
                 android:textColor="@color/bright_on_surface_variant"
-                android:layout_marginBottom="6dp"/>
+                android:layout_marginBottom="6dp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/tv_tw3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TW1: 0.00%"
+                android:text="TW3: 0.00%"
                 android:textSize="18sp"
                 android:textColor="@color/bright_on_surface_variant"
-                android:layout_marginBottom="6dp"/>
+                android:layout_marginBottom="6dp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/tv_tw4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TW1: 0.00%"
+                android:text="TW4: 0.00%"
                 android:textSize="18sp"
                 android:textColor="@color/bright_on_surface_variant"
-                android:layout_marginBottom="6dp"/>
+                android:layout_marginBottom="6dp"
+                tools:ignore="HardcodedText" />
 
             <View
                 android:layout_width="match_parent"

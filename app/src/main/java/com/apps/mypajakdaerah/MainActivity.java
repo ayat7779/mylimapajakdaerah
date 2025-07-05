@@ -1,5 +1,6 @@
 package com.apps.mypajakdaerah;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MainActivity extends AppCompatActivity implements RealisasiAdapter.OnItemClickListener {
 
@@ -164,7 +166,6 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
 
         progressBar.setVisibility(View.VISIBLE);
         tvErrorMessage.setVisibility(View.GONE);
-        tvTotalPajak.setText("Total Pajak: -");
         realisasiAdapter.updateData(new ArrayList<>());
         allPajakDetails.clear();
 
@@ -191,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
     }
 
     // Fungsi untuk memparsing dan menampilkan data ringkasan
+    @SuppressLint("SetTextI18n")
     private void parseAndDisplayRingkasanData(String jsonResponse) {
         try {
             JSONObject jsonObject = new JSONObject(jsonResponse);
@@ -223,11 +225,11 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
             totalPajak += pab;
 
             double omblb = jsonObject.optDouble("realisasi_omblb", 0.0);
-            newList.add(new RealisasiItem("Realisasi Opsen Mineral Bukan Logam dan Batuan", omblb, "OMBLB"));
+            newList.add(new RealisasiItem("Realisasi Opsen MBLB", omblb, "OMBLB"));
             totalPajak += omblb;
 
             realisasiAdapter.updateData(newList);
-            tvTotalPajak.setText("Total Pajak: " + currencyFormatter.format(totalPajak));
+            tvTotalPajak.setText(currencyFormatter.format(totalPajak));
 
             if (totalPajak == 0.0) {
                 tvErrorMessage.setText("Tidak ada data realisasi yang valid ditemukan untuk rentang tanggal ini.");
@@ -276,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
     }
 
     // Fungsi untuk memparsing dan memulai TotalDetailActivity
+    @SuppressLint("SetTextI18n")
     private void parseAndStartTotalDetailActivity(String jsonResponse, String selectedYear) {
         try {
             JSONObject jsonObject = new JSONObject(jsonResponse);
@@ -339,9 +342,9 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
             return;
         }
 
-        String selectedYearForDetail = null;
+        AtomicReference<String> selectedYearForDetail = new AtomicReference<>();
         try {
-            selectedYearForDetail = yearFormatter.format(Objects.requireNonNull(dateFormatter.parse(tglAkhirStr)));
+            selectedYearForDetail.set(yearFormatter.format(Objects.requireNonNull(dateFormatter.parse(tglAkhirStr))));
         } catch (java.text.ParseException e) {
             Toast.makeText(MainActivity.this, "Format tanggal akhir tidak valid.", Toast.LENGTH_SHORT).show();
             Log.e("MainActivity", "Error parsing date for detail view: " + e.getMessage());
@@ -361,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements RealisasiAdapter.
             Intent intent = new Intent(MainActivity.this, PajakDetailActivity.class);
             intent.putExtra(PajakDetailActivity.EXTRA_AKRONIM_PAJAK, item.getAkronimPajak());
             intent.putExtra(PajakDetailActivity.EXTRA_REALISASI_DARI_LIST, item.getNilaiRealisasi());
-            intent.putExtra(PajakDetailActivity.EXTRA_SELECTED_YEAR, selectedYearForDetail);
+            intent.putExtra(PajakDetailActivity.EXTRA_SELECTED_YEAR, selectedYearForDetail.get());
             intent.putExtra(PajakDetailActivity.EXTRA_SELECTED_END_DATE, tglAkhirStr);
             startActivity(intent);
         } else {
